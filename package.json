@@ -1,0 +1,19 @@
+{
+  "name": "fintech-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "lint:check": "prettier --check .",
+    "lint:fix": "prettier --write ."
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "next": "^15.5.3"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}
