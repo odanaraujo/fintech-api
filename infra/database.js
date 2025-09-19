@@ -8,13 +8,38 @@ async function query(queryObject) {
     database: process.env.POSTGRES_DB,
     password: process.env.POSTGRES_PASSWORD,
   });
-  await client.connect();
-  const result = await client.query(queryObject);
+  try {
+    await client.connect();
+    const result = await client.query(queryObject.text, queryObject.value);
+    return result;
+  } catch (err) {
+    console.error("Error in query:", err);
+    throw err;
+  } finally {
+    // aways close conexion
+    await client.end();
+  }
+}
 
-  await client.end();
+async function getStatsDatabase() {
+  const sqlQuery = `
+  SELECT 
+    current_setting('server_version') as version,
+    current_setting('max_connections') as max_connections,
+    count(*)::int as opened_connections
+  FROM pg_stat_activity WHERE datname = $1
+`;
+
+  const sqlObject = {
+    text: sqlQuery,
+    value: [process.env.POSTGRES_DB],
+  };
+
+  const result = await query(sqlObject);
   return result;
 }
 
 export default {
   query: query,
+  getStatsDatabase: getStatsDatabase,
 };
