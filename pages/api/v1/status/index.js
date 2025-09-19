@@ -1,10 +1,18 @@
 import database from "infra/database.js";
 
 async function status(request, response) {
-  const result = await database.query("SELECT 1+1 as sum;");
-  console.log(result.rows);
+  const getStatsDatabase = await database.getStatsDatabase();
+  const updatedAt = new Date().toISOString();
+
   response.status(200).json({
-    chave: "acima da média",
+    updated_at: updatedAt,
+    dependencies: {
+      database: {
+        version: getStatsDatabase.rows[0].version,
+        max_connection: parseInt(getStatsDatabase.rows[0].max_connections),
+        opened_connections: getStatsDatabase.rows[0].opened_connections,
+      },
+    },
   });
 }
 
