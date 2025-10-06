@@ -2,39 +2,51 @@ import migrationRunner from "node-pg-migrate";
 import { join } from "node:path";
 import database from "infra/database.js";
 
+const ALLOWED_METHODS = ["POST", "GET"];
+
+const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  METHOD_NOT_ALLOWED: 405,
+  INTERNAL_SERVER_ERROR: 500,
+};
+
 export default async function migrations(request, response) {
-  const dbClient = await database.getNewClient();
-  const defaultMigrationOptions = {
-    dbClient: dbClient,
-    dryRun: request.method === "POST" ? false : true,
+  if (!ALLOWED_METHODS.includes(request.method)) {
+    return response.status(HTTP_STATUS.METHOD_NOT_ALLOWED).end();
+  }
+
+  let dbClient;
+
+  try {
+    dbClient = await database.getNewClient();
+    const options = createMigrationOptions(dbClient, request.method);
+    const migrations = await migrationRunner(options);
+
+    return sendMigrationResponse(request.method, migrations, response);
+  } catch (error) {
+    console.error("error in migrations", error);
+    throw error;
+  } finally {
+    await dbClient.end();
+  }
+}
+
+function createMigrationOptions(dbClient, method) {
+  return {
+    dbClient,
+    dryRun: method === "GET",
     dir: join("infra", "migration"),
     direction: "up",
     verbose: true,
     migrationsTable: "pgmigrations",
   };
+}
 
-  if (request.method === "POST") {
-    const migratedMigrations = await migrationRunner({
-      ...defaultMigrationOptions,
-    });
-
-    await dbClient.end();
-
-    migratedMigrations.length > 0
-      ? response.status(201).json(migratedMigrations)
-      : response.status(200).json(migratedMigrations);
-    return;
+function sendMigrationResponse(method, migrations, response) {
+  if (method === "POST") {
+    const status = migrations.length > 0 ? HTTP_STATUS.CREATED : HTTP_STATUS.OK;
+    return response.status(status).json(migrations);
   }
-
-  if (request.method === "GET") {
-    const pendingMigrations = await migrationRunner({
-      ...defaultMigrationOptions,
-    });
-
-    await dbClient.end();
-
-    return response.status(200).json(pendingMigrations);
-  }
-
-  response.status(405).end();
+  return response.status(HTTP_STATUS.OK).json(migrations);
 }
