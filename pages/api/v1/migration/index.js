@@ -13,7 +13,9 @@ const HTTP_STATUS = {
 
 export default async function migrations(request, response) {
   if (!ALLOWED_METHODS.includes(request.method)) {
-    return response.status(HTTP_STATUS.METHOD_NOT_ALLOWED).end();
+    return response.status(HTTP_STATUS.METHOD_NOT_ALLOWED).json({
+      error: `METHOD: "${request.method}" not allowed`,
+    });
   }
 
   let dbClient;
