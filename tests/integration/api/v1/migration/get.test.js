@@ -1,6 +1,8 @@
 import database from "infra/database.js";
+import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
+  await orchestrator.waitForAllServices();
   await database.query({
     text: "drop schema public cascade; create schema public;",
     value: [],
@@ -16,4 +18,3 @@ test("GET to /api/v1/migration should return 200", async () => {
   expect(Array.isArray(responseBody)).toBe(true);
   expect(responseBody.length).toBeGreaterThan(0);
 });
-

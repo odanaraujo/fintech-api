@@ -9,7 +9,7 @@
     "services:stop": "docker-compose -f infra/compose.yaml stop",
     "lint:check": "prettier --check .",
     "lint:fix": "prettier --write .",
-    "test": "jest --runInBand",
+    "test": "npm run services:up && concurrently -n next,jest --hide next -k -s command-jest \"next dev\" \"jest --runInBand --verbose\"",
     "test:watch": "jest --watchAll --runInBand",
     "migration:create": "node-pg-migrate -m infra/migration create",
     "migration:up": "node-pg-migrate -m infra/migration --envPath .env.development up",
@@ -19,6 +19,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "async-retry": "^1.3.3",
+    "concurrently": "^9.2.1",
     "dotenv": "^16.4.4",
     "dotenv-expand": "^11.0.6",
     "next": "^15.5.3",
