@@ -1,6 +1,6 @@
 name: Automated Tests
 
-on: [pull_request]
+on: pull_request
 
 jobs:
   jest:
@@ -13,6 +13,6 @@ jobs:
         with:
           node-version: "lts/hydrogen"
 
-      - run: npm ci #utiliza estritamente a versão utilizadas no package-lock.json
+      - run: npm ci
 
       - run: npm test
