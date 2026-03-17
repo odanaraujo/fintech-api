@@ -1,5 +1,6 @@
 import database from "infra/database.js";
 
+// test
 async function status(request, response) {
   const getStatsDatabase = await database.getStatsDatabase();
   const updatedAt = new Date().toISOString();
